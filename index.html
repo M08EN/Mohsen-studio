@@ -11,7 +11,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     
-    <!-- Swiper CSS (مكتبة تحريك وسحب الصور) -->
+    <!-- Swiper CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 
     <style>
@@ -327,9 +327,9 @@
         
         <div class="swiper-container-wrapper">
             <div class="swiper mySwiper">
-                <div class="swiper-wrapper">
+                <div class="swiper-wrapper" id="swiperWrapper">
                     
-                    <!-- صور المعرض -->
+                    <!-- الصور الحالية القديمة -->
                     <div class="swiper-slide" onclick="openImageModal(this)"><img src="best.png" alt="Thumbnail"></div>
                     <div class="swiper-slide" onclick="openImageModal(this)"><img src="4.png" alt="Thumbnail"></div>
                     <div class="swiper-slide" onclick="openImageModal(this)"><img src="5.png" alt="Thumbnail"></div>
@@ -391,12 +391,30 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     
     <script>
-        // Initialize Swiper Carousel
+        const wrapper = document.getElementById('swiperWrapper');
+
+        // البحث التلقائي عن الصور من 1.png إلى 30.png وتضمينها إذا كانت موجودة
+        for (let i = 1; i <= 30; i++) {
+            const imgPath = `${i}.png`;
+            const img = new Image();
+            img.src = imgPath;
+
+            img.onload = function() {
+                const slide = document.createElement('div');
+                slide.className = 'swiper-slide';
+                slide.setAttribute('onclick', 'openImageModal(this)');
+                slide.innerHTML = `<img src="${imgPath}" alt="Thumbnail">`;
+                wrapper.appendChild(slide);
+                if (typeof swiper !== 'undefined') swiper.update();
+            };
+        }
+
+        // Initialize Swiper
         const swiper = new Swiper('.mySwiper', {
             slidesPerView: 'auto',
             spaceBetween: 20,
             grabCursor: true,
-            loop: true,
+            loop: false,
             autoplay: {
                 delay: 2500,
                 disableOnInteraction: false,
