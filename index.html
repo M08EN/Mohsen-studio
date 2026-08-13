@@ -1,185 +1,343 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>قبل وبعد</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      background-color: #0f172a;
-      font-family: sans-serif;
-    }
-
-    .container {
-      position: relative;
-      width: 90%;
-      max-width: 800px;
-      aspect-ratio: 16 / 9; /* يمكنك تعديل النسبة حسب أبعاد صورك */
-      overflow: hidden;
-      border-radius: 12px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-      user-select: none;
-    }
-
-    .image-container {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .image-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      pointer-events: none;
-    }
-
-    /* صورة بعد (الخلفية) */
-    .after-image {
-      z-index: 1;
-    }
-
-    /* صورة قبل (اللي بتتوسع وتنكمش) */
-    .before-image {
-      z-index: 2;
-      width: 50%; /* البداية من النص */
-      overflow: hidden;
-    }
-
-    .before-image img {
-      /* الحفاظ على عدم تشوه الصورة أثناء السحب */
-      width: max(100vw, 800px); 
-      max-width: none;
-    }
-
-    /* شريط السحب الأوسط */
-    .slider {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      width: 4px;
-      background-color: #ffffff;
-      z-index: 3;
-      transform: translateX(-50%);
-      cursor: ew-resize;
-    }
-
-    /* الدائرة اللي في نص الشريط */
-    .slider-button {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 40px;
-      height: 40px;
-      background-color: #ffffff;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      color: #333;
-      font-weight: bold;
-    }
-
-    /* شارات توضيحية */
-    .label {
-      position: absolute;
-      top: 15px;
-      padding: 6px 12px;
-      background: rgba(0, 0, 0, 0.6);
-      color: #fff;
-      font-size: 14px;
-      border-radius: 4px;
-      z-index: 4;
-      pointer-events: none;
-    }
-
-    .label-before {
-      left: 15px;
-    }
-
-    .label-after {
-      right: 15px;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container" id="comparison-slider">
-    <!-- صورة بعد -->
-    <div class="image-container after-image">
-      <img src="after.png" alt="بعد">
-      <span class="label label-after">بعد</span>
+<div class="container" id="terms">
+        <h2 class="section-title">TERMS OF SERVICE</h2>
+        <div class="terms-box">
+            <div class="term-item">
+                <h4>1. Payment Terms</h4>
+                <p>Full payment or a 50% upfront deposit is required prior to starting project production. Work begins upon confirmation of receipt.</p>
+            </div>
+            <div class="term-item">
+                <h4>2. Revisions & Tweaks</h4>
+                <p>Every commission includes up to 3 free minor revisions (lighting, text adjustments, color tweaks). Major concept re-renders may incur fees.</p>
+            </div>
+            <div class="term-item">
+                <h4>3. Turnaround Time</h4>
+                <p>Standard delivery ranges from 24 to 72 hours. Rush options under 24 hours are available with the Advanced 3D package.</p>
+            </div>
+            <div class="term-item">
+                <h4>4. Usage & Copyright</h4>
+                <p>Clients receive full commercial usage rights for YouTube thumbnails and social branding upon final payment delivery.</p>
+            </div>
+        </div>
     </div>
 
-    <!-- صورة قبل -->
-    <div class="image-container before-image" id="before-img">
-      <img src="before.png" id="inner-before-img" alt="قبل">
-      <span class="label label-before">قبل</span>
+    <!-- 🎨 BEFORE / AFTER COMPARISON SLIDER SECTION -->
+    <div class="container" id="comparison">
+        <h2 class="section-title">BEFORE & AFTER</h2>
+        <div class="ba-slider" id="baSlider">
+            <!-- الصورة قبل (تكون الخلفية الأصلية) -->
+            <img src="before.png" alt="Before Image" class="ba-before">
+            <!-- الصورة بعد (تظهر مع سحب المقبض) -->
+            <div class="ba-after" id="baAfter">
+                <img src="after.png" alt="After Image">
+            </div>
+            <!-- مقبض السحب -->
+            <div class="ba-handle" id="baHandle"></div>
+        </div>
     </div>
 
-    <!-- شريط التحكم -->
-    <div class="slider" id="slider-bar">
-      <div class="slider-button">↔</div>
+    <div class="container" id="contact">
+        <h2 class="section-title">GET IN TOUCH</h2>
+        <div class="contact-box">
+            <h3 style="font-size: 1.5rem; margin-bottom: 12px; font-weight: 800;">Ready to elevate your channel visual quality?</h3>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto 30px;">Reach out via Discord or Email to secure your commission slot or inquire about custom branding packages.</p>
+            
+            <div class="social-links">
+                <button class="social-btn" onclick="openModal('discordModal')">Discord Contact</button>
+                <button class="social-btn" onclick="openModal('emailModal')">Email Contact</button>
+                <a href="https://www.behance.net" target="_blank" rel="noopener" class="social-btn">Behance Portfolio</a>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const container = document.getElementById('comparison-slider');
-    const beforeImg = document.getElementById('before-img');
-    const innerBeforeImg = document.getElementById('inner-before-img');
-    const sliderBar = document.getElementById('slider-bar');
+    <!-- MODAL: DISCORD -->
+    <div class="modal-overlay" id="discordModal" onclick="handleOverlayClick(event, 'discordModal')">
+        <div class="modal-box">
+            <h3>DISCORD CONTACT</h3>
+            <p>Click below to copy Discord username:</p>
+            <span class="info-badge" onclick="copyText('mohsen_studio', this)">mohsen_studio</span>
+            <button class="close-btn" onclick="closeModal('discordModal')">Close</button>
+        </div>
+    </div>
 
-    let isDragging = false;
+    <!-- MODAL: EMAIL -->
+    <div class="modal-overlay" id="emailModal" onclick="handleOverlayClick(event, 'emailModal')">
+        <div class="modal-box">
+            <h3>EMAIL CONTACT</h3>
+            <p>Click below to copy business email:</p>
+            <span class="info-badge" onclick="copyText('contact@mohsenstudio.com', this)">contact@mohsenstudio.com</span>
+            <button class="close-btn" onclick="closeModal('emailModal')">Close</button>
+        </div>
+    </div>
 
-    function updateInnerImageWidth() {
-      innerBeforeImg.style.width = container.offsetWidth + 'px';
-    }
+    <!-- MODAL: FULL IMAGE VIEWER -->
+    <div class="modal-overlay" id="imageModal" onclick="handleOverlayClick(event, 'imageModal')">
+        <div class="image-modal-content">
+            <button class="close-img-btn" onclick="closeImageModal()">&times;</button>
+            <img id="modalImg" src="" alt="Full Preview">
+        </div>
+    </div>
 
-    window.addEventListener('resize', updateInnerImageWidth);
-    updateInnerImageWidth();
+    <footer>
+        <p>&copy; 2026 Mohsen Studio. All Rights Reserved. Crafted for High-CTR Gaming Media.</p>
+    </footer>
 
-    function moveSlider(x) {
-      const rect = container.getBoundingClientRect();
-      let position = x - rect.left;
+    <!-- SWIPER JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-      if (position < 0) position = 0;
-      if (position > rect.width) position = rect.width;
+    <script>
+        /* --- 🎯 SWIPER CAROUSEL SETUP --- */
+        const swiper = new Swiper('.mySwiper', {
+            slidesPerView: 'auto',
+            spaceBetween: 20,
+            centeredSlides: true,
+            loop: true,
+            grabCursor: true,
+            autoplay: {
+                delay: 2800,
+                disableOnInteraction: false,
+            },
+        });
 
-      const percentage = (position / rect.width) * 100;
-      beforeImg.style.width = `${percentage}%`;
-      sliderBar.style.left = `${percentage}%`;
-    }
+        /* --- 🎯 CURSOR GLOW FOLLOW --- */
+        const cursorGlow = document.getElementById('cursorGlow');
+        window.addEventListener('mousemove', (e) => {
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        });
 
-    // أحداث الماوس
-    container.addEventListener('mousedown', () => isDragging = true);
-    window.addEventListener('mouseup', () => isDragging = false);
-    window.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      moveSlider(e.clientX);
-    });
+        /* --- 🌧️ RAIN CANVAS ANIMATION --- */
+        const canvas = document.getElementById('rainCanvas');
+        const ctx = canvas.getContext('2d');
+        let drops = [];
 
-    // أحداث اللمس للشبابيك والجوالات
-    container.addEventListener('touchstart', () => isDragging = true);
-    window.addEventListener('touchend', () => isDragging = false);
-    window.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-      moveSlider(e.touches[0].clientX);
-    });
-  </script>
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        for (let i = 0; i < 120; i++) {
+            drops.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                length: Math.random() * 20 + 10,
+                speed: Math.random() * 10 + 12,
+                opacity: Math.random() * 0.5 + 0.2
+            });
+        }
+
+        function drawRain() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#00b894';
+            ctx.lineWidth = 1.2;
+
+            for (let i = 0; i < drops.length; i++) {
+                let d = drops[i];
+                ctx.globalAlpha = d.opacity;
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d.x - d.length * 0.2, d.y + d.length);
+                ctx.stroke();
+
+                d.y += d.speed;
+                d.x -= d.speed * 0.2;
+
+                if (d.y > canvas.height) {
+                    d.y = -20;
+                    d.x = Math.random() * canvas.width;
+                }
+            }
+            requestAnimationFrame(drawRain);
+        }
+        drawRain();
+
+        /* --- 🔊 PROCEDURAL RAIN AMBIENT AUDIO --- */
+        let audioCtx, rainSource, gainNode;
+        let isAudioPlaying = false;
+
+        const toggleAudioBtn = document.getElementById('toggleAudio');
+        const audioIcon = document.getElementById('audioIcon');
+        const audioText = document.getElementById('audioText');
+        const volumeSlider = document.getElementById('volumeSlider');
+
+        function generateRainAudio() {
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+
+            const whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = buffer;
+            whiteNoise.loop = true;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 800;
+
+            gainNode = audioCtx.createGain();
+            gainNode.gain.value = volumeSlider.value;
+
+            whiteNoise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            return whiteNoise;
+        }
+
+        toggleAudioBtn.addEventListener('click', () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (!isAudioPlaying) {
+                audioCtx.resume();
+                rainSource = generateRainAudio();
+                rainSource.start();
+                isAudioPlaying = true;
+                audioIcon.textContent = '🔊';
+                audioText.textContent = 'Pause Ambient';
+            } else {
+                if (rainSource) rainSource.stop();
+                isAudioPlaying = false;
+                audioIcon.textContent = '🌧️';
+                audioText.textContent = 'Play Rain';
+            }
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            if (gainNode) {
+                gainNode.gain.value = e.target.value;
+            }
+        });
+
+        /* --- ❤️ LIKES COUNTER TOGGLE --- */
+        let isLiked = false;
+        let currentLikes = 1100;
+
+        function toggleLike() {
+            const btn = document.getElementById('likeBtn');
+            const likesSpan = document.getElementById('likesCount');
+
+            if (!isLiked) {
+                currentLikes++;
+                btn.classList.add('liked');
+                isLiked = true;
+            } else {
+                currentLikes--;
+                btn.classList.remove('liked');
+                isLiked = false;
+            }
+            likesSpan.textContent = currentLikes.toLocaleString();
+        }
+
+        /* --- 🎨 BEFORE/AFTER COMPARISON SLIDER --- */
+        const baSlider = document.getElementById('baSlider');
+        const baAfter = document.getElementById('baAfter');
+        const baHandle = document.getElementById('baHandle');
+        let isSliding = false;
+
+        function updateSlider(x) {
+            const rect = baSlider.getBoundingClientRect();
+            let pos = ((x - rect.left) / rect.width) * 100;
+            if (pos < 0) pos = 0;
+            if (pos > 100) pos = 100;
+            baAfter.style.width = pos + '%';
+            baHandle.style.left = pos + '%';
+        }
+
+        baSlider.addEventListener('mousedown', (e) => { isSliding = true; updateSlider(e.clientX); });
+        window.addEventListener('mouseup', () => { isSliding = false; });
+        window.addEventListener('mousemove', (e) => { if (isSliding) updateSlider(e.clientX); });
+
+        baSlider.addEventListener('touchstart', (e) => { isSliding = true; updateSlider(e.touches[0].clientX); });
+        window.addEventListener('touchend', () => { isSliding = false; });
+        window.addEventListener('touchmove', (e) => { if (isSliding) updateSlider(e.touches[0].clientX); });
+
+        /* --- 🎨 3-STEP PROCESS SWITCHER --- */
+        const processImages = {
+            1: "before.png",
+            2: "11152.png",
+            3: "after.png"
+        };
+
+        function switchProcessStep(step, element) {
+            document.querySelectorAll('.process-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+
+            const img = document.getElementById('processImg');
+            img.style.opacity = '0';
+            setTimeout(() => {
+                img.src = processImages[step];
+                img.style.opacity = '1';
+            }, 200);
+        }
+
+        /* --- ❓ FAQ ACCORDION --- */
+        function toggleFaq(element) {
+            const item = element.parentElement;
+            const isActive = item.classList.contains('active');
+
+            document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        }
+
+        /* --- 💬 MODALS LOGIC --- */
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function handleOverlayClick(e, modalId) {
+            if (e.target.id === modalId) {
+                closeModal(modalId);
+            }
+        }
+
+        function openImageModal(slideElement) {
+            const src = slideElement.querySelector('img').src;
+            document.getElementById('modalImg').src = src;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+
+        function copyText(text, badgeElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = badgeElement.textContent;
+                badgeElement.textContent = 'Copied to Clipboard!';
+                badgeElement.style.borderColor = '#55efc4';
+                setTimeout(() => {
+                    badgeElement.textContent = originalText;
+                    badgeElement.style.borderColor = 'var(--primary)';
+                }, 1600);
+            });
+        }
+
+        /* --- ⬆️ BACK TO TOP BUTTON --- */
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 400) {
+                backToTopBtn.style.display = 'flex';
+            } else {
+                backToTopBtn.style.display = 'none';
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>
