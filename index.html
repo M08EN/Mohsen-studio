@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>قبل وبعد</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #0f172a;
+      font-family: sans-serif;
+    }
+
+    .container {
+      position: relative;
+      width: 90%;
+      max-width: 800px;
+      aspect-ratio: 16 / 9; /* يمكنك تعديل النسبة حسب أبعاد صورك */
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      user-select: none;
+    }
+
+    .image-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+    }
+
+    /* صورة بعد (الخلفية) */
+    .after-image {
+      z-index: 1;
+    }
+
+    /* صورة قبل (اللي بتتوسع وتنكمش) */
+    .before-image {
+      z-index: 2;
+      width: 50%; /* البداية من النص */
+      overflow: hidden;
+    }
+
+    .before-image img {
+      /* الحفاظ على عدم تشوه الصورة أثناء السحب */
+      width: max(100vw, 800px); 
+      max-width: none;
+    }
+
+    /* شريط السحب الأوسط */
+    .slider {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 4px;
+      background-color: #ffffff;
+      z-index: 3;
+      transform: translateX(-50%);
+      cursor: ew-resize;
+    }
+
+    /* الدائرة اللي في نص الشريط */
+    .slider-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      background-color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      color: #333;
+      font-weight: bold;
+    }
+
+    /* شارات توضيحية */
+    .label {
+      position: absolute;
+      top: 15px;
+      padding: 6px 12px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      font-size: 14px;
+      border-radius: 4px;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .label-before {
+      left: 15px;
+    }
+
+    .label-after {
+      right: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="comparison-slider">
+    <!-- صورة بعد -->
+    <div class="image-container after-image">
+      <img src="after.png" alt="بعد">
+      <span class="label label-after">بعد</span>
+    </div>
+
+    <!-- صورة قبل -->
+    <div class="image-container before-image" id="before-img">
+      <img src="before.png" id="inner-before-img" alt="قبل">
+      <span class="label label-before">قبل</span>
+    </div>
+
+    <!-- شريط التحكم -->
+    <div class="slider" id="slider-bar">
+      <div class="slider-button">↔</div>
+    </div>
+  </div>
+
+  <script>
+    const container = document.getElementById('comparison-slider');
+    const beforeImg = document.getElementById('before-img');
+    const innerBeforeImg = document.getElementById('inner-before-img');
+    const sliderBar = document.getElementById('slider-bar');
+
+    let isDragging = false;
+
+    function updateInnerImageWidth() {
+      innerBeforeImg.style.width = container.offsetWidth + 'px';
+    }
+
+    window.addEventListener('resize', updateInnerImageWidth);
+    updateInnerImageWidth();
+
+    function moveSlider(x) {
+      const rect = container.getBoundingClientRect();
+      let position = x - rect.left;
+
+      if (position < 0) position = 0;
+      if (position > rect.width) position = rect.width;
+
+      const percentage = (position / rect.width) * 100;
+      beforeImg.style.width = `${percentage}%`;
+      sliderBar.style.left = `${percentage}%`;
+    }
+
+    // أحداث الماوس
+    container.addEventListener('mousedown', () => isDragging = true);
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      moveSlider(e.clientX);
+    });
+
+    // أحداث اللمس للشبابيك والجوالات
+    container.addEventListener('touchstart', () => isDragging = true);
+    window.addEventListener('touchend', () => isDragging = false);
+    window.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      moveSlider(e.touches[0].clientX);
+    });
+  </script>
+</body>
+</html>
