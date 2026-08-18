@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mohsen Studio - Next-Gen Gaming Visuals</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <style>
+        :root {
+            --primary: #00b894;
+            --primary-glow: rgba(0, 184, 148, 0.4);
+            --accent: #55efc4;
+            --bg-dark: #0a0a0d;
+            --bg-card: rgba(18, 18, 22, 0.85);
+            --bg-card-border: rgba(255, 255, 255, 0.07);
+            --text-main: #ffffff;
+            --text-muted: #8e8e9e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- 🌧️ RAIN CANVAS --- */
+        #rainCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.45;
+        }
+
+        /* --- 🎯 CUSTOM CURSOR GLOW --- */
+        .cursor-glow {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(0, 184, 148, 0.12) 0%, rgba(0, 0, 0, 0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        /* --- 🟢 AVAILABILITY BADGE --- */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 184, 148, 0.1);
+            border: 1px solid var(--primary);
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 22px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(85, 239, 196, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(85, 239, 196, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(85, 239, 196, 0); }
+        }
+
+        /* --- 🔊 AUDIO CONTROLLER --- */
+        .audio-widget {
+            position: fixed;
+            bottom: 25px;
+            left: 25px;
+            z-index: 999;
+            background: rgba(18, 18, 22, 0.9);
+            border: 1px solid var(--bg-card-border);
+            padding: 10px 18px;
+            border-radius: 30px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+        }
+
+        .audio-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .volume-slider {
+            width: 65px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        /* HEADER */
+        header {
+            background: rgba(10, 10, 13, 0.8);
+            padding: 20px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--bg-card-border);
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 100;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.35rem;
+            letter-spacing: 1.5px;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        .logo span { color: var(--accent); }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 28px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover { color: var(--accent); }
+
+        /* HERO SECTION */
+        .hero {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 85px 20px 40px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 5.5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffffff 40%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.15;
+            letter-spacing: -1px;
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            margin-bottom: 38px;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn-main {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            padding: 14px 40px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 700;
+            box-shadow: 0 4px 25px var(--primary-glow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-main:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 35px rgba(0, 184, 148, 0.6);
+        }
+
+        /* STATS BAR */
+        .stats-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 40px auto 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            padding: 10px 22px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #eee;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card span { color: var(--accent); font-weight: 800; }
+
+        .like-btn {
+            background: rgba(25, 25, 32, 0.85);
+            border: 1px solid var(--primary);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .like-btn:hover { background: var(--primary); transform: translateY(-2px); }
+        .like-btn.liked { background: var(--primary); border-color: var(--accent); box-shadow: 0 0 15px var(--primary-glow); }
+
+        /* GENERAL CONTAINER */
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 80px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            margin-bottom: 35px;
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* SWIPER CAROUSEL */
+        .swiper-container-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            padding: 40px 0;
+            background: rgba(14, 14, 18, 0.7);
+            border-top: 1px solid var(--bg-card-border);
+            border-bottom: 1px solid var(--bg-card-border);
+            backdrop-filter: blur(8px);
+        }
+
+        .swiper { width: 100%; padding-bottom: 10px; }
+
+        .swiper-slide {
+            width: 360px;
+            height: 205px;
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+
+        .swiper-slide:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
+        .swiper-slide img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- 🎨 BEFORE / AFTER SLIDER --- */
+        .ba-container {
+            max-width: 820px;
+            margin: 0 auto 60px;
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid var(--primary);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
+            user-select: none;
+        }
+
+        .ba-slider {
+            position: relative;
+            width: 100%;
+            height: 440px;
+            overflow: hidden;
+        }
+
+        .ba-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ba-img-after {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 50%;
+            z-index: 2;
+            overflow: hidden;
+            border-right: 3px solid var(--accent);
+        }
+
+        .ba-img-after img {
+            width: 820px;
+            max-width: none;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .ba-handle {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            background: var(--accent);
+            z-index: 3;
+            cursor: ew-resize;
+        }
+
+        .ba-handle::after {
+            content: "↔";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 38px;
+            height: 38px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0,0,0,0.9);
+        }
+
+        .ba-badge {
+            position: absolute;
+            top: 15px;
+            padding: 6px 14px;
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 800;
+            border-radius: 6px;
+            z-index: 4;
+            backdrop-filter: blur(6px);
+            letter-spacing: 0.5px;
+        }
+        .ba-badge-before { right: 15px; }
+        .ba-badge-after { left: 15px; color: var(--accent); }
+
+        /* --- 🎨 3-STEP DESIGN PROCESS --- */
+        .process-box {
+            max-width: 820px;
+            margin: 0 auto;
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 16px;
+            padding: 28px;
+            backdrop-filter: blur(10px);
+        }
+
+        .process-nav {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .process-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--bg-card-border);
+            color: var(--text-muted);
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .process-btn.active, .process-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 0 18px var(--primary-glow);
+        }
+
+        .process-img-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--bg-card-border);
+        }
+
+        .process-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.4s ease;
+        }
+
+        /* --- ⭐️ TESTIMONIALS SECTION --- */
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 22px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .review-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 14px;
+            padding: 28px 24px;
+            position: relative;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .review-text { font-size: 0.92rem; color: #ddd; margin-bottom: 20px; font-style: italic; }
+        .review-author { display: flex; align-items: center; gap: 12px; }
+        .review-avatar { width: 42px; height: 42px; border-radius: 50%; background: #222; border: 1px solid var(--primary); }
+        .review-info h5 { font-size: 0.95rem; font-weight: 700; color: #fff; }
+        .review-info span { font-size: 0.78rem; color: var(--accent); }
+
+        /* PRICING SECTION */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 28px;
+        }
+
+        .pricing-card {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 16px;
+            padding: 42px 30px;
+            text-align: center;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+        }
+
+        .pricing-card:hover { transform: translateY(-6px); border-color: var(--primary); }
+        .pricing-card.featured { border: 2px solid var(--primary); background: rgba(22, 22, 28, 0.9); box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5); }
+
+        .pricing-badge {
+            position: absolute;
+            top: -14px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pricing-title { font-size: 1.35rem; font-weight: 800; margin-bottom: 10px; }
+        .pricing-price { font-size: 2.8rem; font-weight: 800; color: var(--accent); margin-bottom: 22px; }
+        .pricing-features { list-style: none; text-align: left; margin-bottom: 35px; color: var(--text-muted); font-size: 0.9rem; }
+        .pricing-features li { margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+        .pricing-features li::before { content: "✓"; color: var(--primary); font-weight: bold; }
+
+        /* FAQ SECTION */
+        .faq-box {
+            max-width: 820px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .faq-item {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+
+        .faq-question {
+            padding: 20px 24px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            font-size: 0.98rem;
+        }
+
+        .faq-question:hover { color: var(--accent); }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            padding: 0 24px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            transition: all 0.3s ease-out;
+            background: rgba(10, 10, 13, 0.4);
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 15px 24px 22px;
+            max-height: 200px;
+        }
+
+        .faq-item.active { border-color: var(--primary); }
+
+        /* TERMS OF SERVICE */
+        .terms-box {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 16px;
+            padding: 38px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 22px;
+            backdrop-filter: blur(10px);
+        }
+
+        .term-item {
+            background: rgba(14, 14, 18, 0.8);
+            padding: 24px;
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .term-item h4 { font-size: 1.05rem; color: var(--accent); margin-bottom: 8px; font-weight: 700; }
+        .term-item p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
+
+        /* CONTACT SECTION */
+        .contact-box {
+            background: var(--bg-card);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 16px;
+            padding: 50px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .social-links { display: flex; justify-content: center; gap: 18px; margin-top: 28px; flex-wrap: wrap; }
+
+        .social-btn {
+            background: rgba(28, 28, 35, 0.9);
+            color: #fff;
+            padding: 13px 30px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: 1px solid var(--bg-card-border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover { background: var(--primary); border-color: var(--primary); transform: translateY(-2px); }
+
+        /* MODALS */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-box {
+            background: var(--bg-card);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 38px 28px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+        }
+
+        .modal-box h3 { font-size: 1.4rem; margin-bottom: 12px; color: #fff; font-weight: 800; }
+        .modal-box p { color: var(--text-muted); margin-bottom: 22px; font-size: 0.95rem; }
+
+        .info-badge {
+            background: #0f0f13;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1.1rem;
+            border: 1px dashed var(--primary);
+            display: block;
+            margin-bottom: 22px;
+            word-break: break-all;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        /* IMAGE VIEWER MODAL */
+        .image-modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-modal-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 14px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 15px 45px rgba(0,0,0,0.9);
+            object-fit: contain;
+        }
+
+        .close-img-btn {
+            position: absolute;
+            top: -18px;
+            right: -18px;
+            background: #e74c3c;
+            color: #fff;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* BACK TO TOP */
+        #backToTop {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 99;
+            background: var(--primary);
+            color: #fff;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 20px var(--primary-glow);
+            transition: all 0.3s ease;
+        }
+
+        #backToTop:hover { transform: translateY(-3px); background: var(--accent); color: #000; }
+
+        footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid var(--bg-card-border);
+            color: #555;
+            font-size: 0.85rem;
+            margin-top: 80px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cursor-glow" id="cursorGlow"></div>
+
+    <canvas id="rainCanvas"></canvas>
+
+    <div class="audio-widget">
+        <button class="audio-btn" id="toggleAudio">
+            <span id="audioIcon">🌧️</span>
+            <span id="audioText">Play Rain</span>
+        </button>
+        <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.05" value="0.2" title="Volume">
+    </div>
+
+    <button id="backToTop" onclick="scrollToTop()">↑</button>
+
+    <header>
+        <div class="logo">MOHSEN <span>STUDIO</span></div>
+        <nav>
+            <a href="#work">Work</a>
+            <a href="#compare">Before/After</a>
+            <a href="#process">Process</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#faq">FAQ</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="status-badge">
+            <span class="status-dot"></span> Available For New Commissions
+        </div>
+        <h1>Minecraft Thumbnails & Visual Assets</h1>
+        <p>High-tier Minecraft thumbnails, custom 3D renders, and visual design solutions built to maximize CTR & channel authority.</p>
+        <a href="#work" class="btn-main">View Portfolio</a>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                👁️ Views: <span id="viewsCount">7,000</span>
+            </div>
+            <button class="like-btn" id="likeBtn" onclick="toggleLike()">
+                ❤️ Likes: <span id="likesCount">1,100</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- 🖼️ FEATURED THUMBNAILS PORTFOLIO -->
+    <div id="work" style="padding-top: 30px;">
+        <h2 class="section-title">FEATURED THUMBNAILS</h2>
+        
+        <div class="swiper-container-wrapper">
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="11152.png" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="2026-08-06_21.04.13.png" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="4.png" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="4144.png" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="5.png" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="70.png" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="80.png" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="900.png" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="k.jpg" alt="Thumbnail" loading="lazy"></div>
+                    <div class="swiper-slide" onclick="openImageModal(this)"><img src="lol.png" alt="Thumbnail" loading="lazy"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎨 BEFORE / AFTER SLIDER -->
+    <div class="container" id="compare">
+        <h2 class="section-title">RAW VS FINAL EDIT</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 25px;">Drag the slider to inspect post-processing, lighting overlays, and color grading!</p>
+        
+        <div class="ba-container">
+            <div class="ba-slider" id="baSlider">
+                <span class="ba-badge ba-badge-before">RAW RENDER</span>
+                <span class="ba-badge ba-badge-after">PHOTOSHOP EDITED</span>
+                <img src="before.png" class="ba-img" alt="Raw Render">
+                <div class="ba-img-after" id="baAfter">
+                    <img src="after.png" alt="Edited Render">
+                </div>
+                <div class="ba-handle" id="baHandle"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎨 3-STEP PROCESS -->
+    <div class="container" id="process">
+        <h2 class="section-title">BEHIND THE SCENES PROCESS</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 25px;">Click the steps below to inspect how every thumbnail is crafted from scratch:</p>
+
+        <div class="process-box">
+            <div class="process-nav">
+                <button class="process-btn active" onclick="switchProcessStep(1, this)">Step 1: 3D Scene Build</button>
+                <button class="process-btn" onclick="switchProcessStep(2, this)">Step 2: Lighting & FX</button>
+                <button class="process-btn" onclick="switchProcessStep(3, this)">Step 3: Final Grading</button>
+            </div>
+            <div class="process-img-container">
+                <img id="processImg" src="before.png" alt="Process Step">
+            </div>
+        </div>
+    </div>
+
+    <!-- ⭐️ TESTIMONIALS -->
+    <div class="container" id="reviews">
+        <h2 class="section-title">CLIENT REVIEWS</h2>
+        <div class="reviews-grid">
+            <div class="review-card">
+                <div class="review-text">"Mohsen completely revamped my thumbnail style! Click-through rates spiked right after using his 3D thumbnails."</div>
+                <div class="review-author">
+                    <div class="review-avatar"></div>
+                    <div class="review-info">
+                        <h5>Creator Gaming</h5>
+                        <span>+45% Higher CTR</span>
+                    </div>
+                </div>
+            </div>
+            <div class="review-card">
+                <div class="review-text">"Insane turn-around time and attention to detail with lighting and character posing. Definitely coming back for more!"</div>
+                <div class="review-author">
+                    <div class="review-avatar"></div>
+                    <div class="review-info">
+                        <h5>PvP Channel</h5>
+                        <span>Express Delivery</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRICING SECTION -->
+    <div class="container" id="pricing">
+        <h2 class="section-title">PRICING PLANS</h2>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div>
+                    <div class="pricing-title">Standard Thumbnail</div>
+                    <div class="pricing-price">$10</div>
+                    <ul class="pricing-features">
+                        <li>Photoshop Post-Processing</li>
+                        <li>High-CTR Text & Color Effects</li>
+                        <li>In-game Screenshots Composition</li>
+                        <li>24h - 72h Delivery Time</li>
+                    </ul>
+                </div>
+                <a href="#contact" class="social-btn" style="display: block; width: 100%;">Order Now</a>
+            </div>
+
+            <div class="pricing-card featured">
+                <div>
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-title">Advanced 3D Thumbnail</div>
+                    <div class="pricing-price">$15</div>
+                    <ul class="pricing-features">
+                        <li>Custom 3D Blender Renders</li>
+                        <li>Advanced Character Rigging & Posing</li>
+                        <li>Custom Environments & Atmospheric Lighting</li>
+                        <li>High-End Photoshop Color Grading</li>
+                        <li>Express Under 24h Delivery</li>
+                    </ul>
+                </div>
+                <a href="#contact" class="btn-main" style="display: block; width: 100%;">Order Now</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ SECTION -->
+    <div class="container" id="faq">
+        <h2 class="section-title">FREQUENTLY ASKED QUESTIONS</h2>
+        <div class="faq-box">
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>How long does delivery take?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    3D Thumbnails ($15) are delivered within 24 hours. Standard Thumbnails ($10) take between 24 to 72 hours depending on order complexity.
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>What files do I need to provide?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    You only need to provide your Minecraft skin file (.png) and the title/concept of your video. We handle the rest!
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" onclick="toggleFaq(this)">
+                    <span>Can I request revisions?</span>
+                    <span>+</span>
+                </div>
+                <div class="faq-answer">
+                    Yes! Every package includes 2-3 minor revisions (adjusting colors, text placement, or lighting tweaks) free of charge.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TERMS OF SERVICE -->
+    <div class="container" id="terms">
+        <h2 class="section-title">TERMS OF SERVICE</h2>
+        <div class="terms-box">
+            <div class="term-item">
+                <h4>Payment & Deposits</h4>
+                <p>Full payment or agreed deposit is required prior to project start or final un-watermarked asset delivery.</p>
+            </div>
+            <div class="term-item">
+                <h4>Delivery Timelines</h4>
+                <p>Delivery countdown begins after all required assets (skin files, text, references) are received.</p>
+            </div>
+            <div class="term-item">
+                <h4>Revisions Policy</h4>
+                <p>Includes up to 3 minor adjustments. Major concept changes after initial render approval may incur extra fees.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTACT SECTION -->
+    <div class="container" id="contact">
+        <div class="contact-box">
+            <h2 class="section-title">GET IN TOUCH</h2>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">Ready to elevate your YouTube content? Reach out via Discord or social channels to discuss your project!</p>
+            <div class="social-links">
+                <button class="social-btn" onclick="openModal('discordModal')">Discord</button>
+                <button class="social-btn" onclick="openModal('socialModal')">Social Links</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <div class="modal-overlay" id="discordModal" onclick="closeModalOnBg(event, this)">
+        <div class="modal-box">
+            <h3>DISCORD CONTACT</h3>
+            <p>Click below to copy Discord username or add directly:</p>
+            <span class="info-badge" onclick="copyText('mohsen_studio')">mohsen_studio</span>
+            <button class="close-btn" onclick="closeModal('discordModal')">Close</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="socialModal" onclick="closeModalOnBg(event, this)">
+        <div class="modal-box">
+            <h3>CONNECT WITH ME</h3>
+            <p>Find my work and portfolio on Behance:</p>
+            <a href="https://www.behance.net" target="_blank" class="info-badge" style="text-decoration: none;">Behance Portfolio</a>
+            <button class="close-btn" onclick="closeModal('socialModal')">Close</button>
+        </div>
+    </div>
+
+    <!-- IMAGE VIEWER MODAL -->
+    <div class="modal-overlay" id="imageModal" onclick="closeModalOnBg(event, this)">
+        <div class="image-modal-content">
+            <button class="close-img-btn" onclick="closeModal('imageModal')">✕</button>
+            <img id="modalImg" src="" alt="Fullscreen Preview">
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 MOHSEN STUDIO. ALL RIGHTS RESERVED.
+    </footer>
+
+    <!-- SWIPER JS -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+    <script>
+        // Swiper Slider Setup
+        const swiper = new Swiper(".mySwiper", {
+            slidesPerView: "auto",
+            spaceBetween: 20,
+            centeredSlides: true,
+            loop: true,
+            autoplay: {
+                delay: 3000,
+                disableOnInteraction: false,
+            },
+        });
+
+        // Rain Effect Canvas
+        const canvas = document.getElementById("rainCanvas");
+        const ctx = canvas.getContext("2d");
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener("resize", () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const drops = Array.from({ length: 90 }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            length: Math.random() * 18 + 10,
+            speed: Math.random() * 8 + 6,
+            opacity: Math.random() * 0.4 + 0.1
+        }));
+
+        function drawRain() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = '#00b894';
+            ctx.lineWidth = 1;
+
+            drops.forEach(drop => {
+                ctx.globalAlpha = drop.opacity;
+                ctx.beginPath();
+                ctx.moveTo(drop.x, drop.y);
+                ctx.lineTo(drop.x, drop.y + drop.length);
+                ctx.stroke();
+
+                drop.y += drop.speed;
+                if (drop.y > height) {
+                    drop.y = -drop.length;
+                    drop.x = Math.random() * width;
+                }
+            });
+            requestAnimationFrame(drawRain);
+        }
+        drawRain();
+
+        // Custom Cursor Glow
+        const cursorGlow = document.getElementById("cursorGlow");
+        window.addEventListener("mousemove", (e) => {
+            cursorGlow.style.left = `${e.clientX}px`;
+            cursorGlow.style.top = `${e.clientY}px`;
+        });
+
+        // Audio Widget (Procedural Rain Ambient Sound)
+        let audioCtx, isPlaying = false, gainNode;
+        const toggleAudioBtn = document.getElementById("toggleAudio");
+        const audioText = document.getElementById("audioText");
+        const volumeSlider = document.getElementById("volumeSlider");
+
+        toggleAudioBtn.addEventListener("click", () => {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+
+                const whiteNoise = audioCtx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+                whiteNoise.loop = true;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+
+                gainNode = audioCtx.createGain();
+                gainNode.gain.value = volumeSlider.value;
+
+                whiteNoise.connect(filter);
+                filter.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                whiteNoise.start();
+                isPlaying = true;
+                audioText.textContent = "Pause Rain";
+            } else {
+                if (isPlaying) {
+                    audioCtx.suspend();
+                    isPlaying = false;
+                    audioText.textContent = "Play Rain";
+                } else {
+                    audioCtx.resume();
+                    isPlaying = true;
+                    audioText.textContent = "Pause Rain";
+                }
+            }
+        });
+
+        volumeSlider.addEventListener("input", (e) => {
+            if (gainNode) gainNode.gain.value = e.target.value;
+        });
+
+        // Likes Logic
+        let liked = false;
+        let likes = 1100;
+        function toggleLike() {
+            const btn = document.getElementById("likeBtn");
+            const count = document.getElementById("likesCount");
+            if (!liked) {
+                likes++;
+                btn.classList.add("liked");
+                liked = true;
+            } else {
+                likes--;
+                btn.classList.remove("liked");
+                liked = false;
+            }
+            count.textContent = likes.toLocaleString();
+        }
+
+        // Before/After Slider Logic
+        const baSlider = document.getElementById("baSlider");
+        const baAfter = document.getElementById("baAfter");
+        const baHandle = document.getElementById("baHandle");
+        let isDragging = false;
+
+        function setSliderPos(x) {
+            const rect = baSlider.getBoundingClientRect();
+            let pos = ((x - rect.left) / rect.width) * 100;
+            if (pos < 0) pos = 0;
+            if (pos > 100) pos = 100;
+            baAfter.style.width = `${pos}%`;
+            baHandle.style.left = `${pos}%`;
+        }
+
+        baSlider.addEventListener("mousedown", (e) => { isDragging = true; setSliderPos(e.clientX); });
+        window.addEventListener("mouseup", () => isDragging = false);
+        window.addEventListener("mousemove", (e) => { if (isDragging) setSliderPos(e.clientX); });
+
+        baSlider.addEventListener("touchstart", (e) => { isDragging = true; setSliderPos(e.touches[0].clientX); });
+        window.addEventListener("touchend", () => isDragging = false);
+        window.addEventListener("touchmove", (e) => { if (isDragging) setSliderPos(e.touches[0].clientX); });
+
+        // Process Steps Logic
+        const processImages = {
+            1: "before.png",
+            2: "4.png",
+            3: "after.png"
+        };
+        function switchProcessStep(step, btn) {
+            document.querySelectorAll(".process-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            document.getElementById("processImg").src = processImages[step];
+        }
+
+        // FAQ Toggle Logic
+        function toggleFaq(element) {
+            const item = element.parentElement;
+            item.classList.toggle("active");
+        }
+
+        // Modal Logic
+        function openModal(id) {
+            document.getElementById(id).style.display = "flex";
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = "none";
+        }
+        function closeModalOnBg(e, el) {
+            if (e.target === el) el.style.display = "none";
+        }
+
+        function openImageModal(slide) {
+            const imgSrc = slide.querySelector("img").src;
+            document.getElementById("modalImg").src = imgSrc;
+            openModal("imageModal");
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text);
+            alert("Copied: " + text);
+        }
+
+        // Back to Top Button
+        const backToTopBtn = document.getElementById("backToTop");
+        window.addEventListener("scroll", () => {
+            if (window.scrollY > 400) {
+                backToTopBtn.style.display = "flex";
+            } else {
+                backToTopBtn.style.display = "none";
+            }
+        });
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
