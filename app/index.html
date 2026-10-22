@@ -154,6 +154,7 @@
             transition: 0.3s;
         }
         .add-btn:hover { transform: scale(1.03); }
+        .add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .gallery {
             display: grid;
@@ -369,7 +370,7 @@
                         Total Price: <span id="total-price">$10</span>
                     </div>
 
-                    <button type="submit" class="add-btn" style="width: 100%; font-size: 16px;">
+                    <button type="submit" id="submit-order-btn" class="add-btn" style="width: 100%; font-size: 16px;">
                         <i class="fas fa-paper-plane"></i> SUBMIT ORDER TO DISCORD
                     </button>
 
@@ -490,6 +491,8 @@
 
     <script src="bats.js"></script>
     <script>
+        const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1562510713254187128/enT52pskQiuW6DstpV5Fifp657E49ApCguulcAuC_0Kf9H9MvzcWfgstAmRkGalhp0JI";
+
         function switchSection(id, btn) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -504,11 +507,54 @@
             else priceSpan.textContent = '$15';
         }
 
-        function sendDiscordOrder(e) {
+        async function sendDiscordOrder(e) {
             e.preventDefault();
-            alert("✅ Order Simulated Successfully!\n\nIMPORTANT NEXT STEPS:\n1. Add MOHSEN on Discord: .x2y.\n2. Payment is required ONLY AFTER you review the first 3D render preview.");
-            document.getElementById('discord-order-form').reset();
-            updatePrice();
+            
+            const btn = document.getElementById('submit-order-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SENDING...';
+
+            const discordUser = document.getElementById('discord-user').value.trim();
+            const charCount = document.getElementById('char-count').value;
+            const mcUsername = document.getElementById('mc-username').value.trim();
+            const orderDetails = document.getElementById('order-details').value.trim();
+            const totalPrice = document.getElementById('total-price').textContent;
+
+            const payload = {
+                embeds: [{
+                    title: "🛒 NEW ORDER RECEIVED!",
+                    color: 16711740, // #ff003c
+                    fields: [
+                        { name: "👤 Discord User", value: discordUser, inline: true },
+                        { name: "🎮 MC Skin/Name", value: mcUsername, inline: true },
+                        { name: "👥 Type/Count", value: charCount, inline: true },
+                        { name: "💰 Price", value: totalPrice, inline: true },
+                        { name: "📝 Details", value: orderDetails }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
+            };
+
+            try {
+                const response = await fetch(DISCORD_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("✅ Order Sent Successfully!\n\nIMPORTANT NEXT STEPS:\n1. Add MOHSEN on Discord: .x2y.\n2. Payment is required ONLY AFTER you review the first 3D render preview.");
+                    document.getElementById('discord-order-form').reset();
+                    updatePrice();
+                } else {
+                    alert("❌ Failed to send order directly. Please add .x2y. on Discord to order.");
+                }
+            } catch (err) {
+                alert("❌ Error sending order. Please contact .x2y. on Discord.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> SUBMIT ORDER TO DISCORD';
+            }
         }
 
         const MIN_SLOTS = { thumbnail: 6, logo: 8 };
