@@ -168,10 +168,13 @@
             border-radius: 14px;
             overflow: hidden;
             transition: 0.3s ease;
+            cursor: pointer;
+            position: relative;
         }
         .work-card:hover {
             border-color: #ff003c;
             transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(255, 0, 60, 0.3);
         }
         .work-card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #0d0d10; min-height: 200px; }
         .work-card-info:empty { display: none; }
@@ -290,6 +293,88 @@
         .review-header img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #ff003c; }
         .review-stars { color: #ff003c; font-size: 12px; margin-top: 3px; }
         .review-text { font-size: 13px; color: #ccc; line-height: 1.5; }
+
+        /* LIGHTBOX MODAL & ZOOM STYLING */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(5, 5, 8, 0.92);
+            backdrop-filter: blur(10px);
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lightbox-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .lightbox-wrapper {
+            overflow: hidden;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 0, 60, 0.5);
+            box-shadow: 0 0 35px rgba(255, 0, 60, 0.4);
+            cursor: zoom-in;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lightbox-img {
+            max-width: 90vw;
+            max-height: 80vh;
+            object-fit: contain;
+            transition: transform 0.1s ease-out;
+            transform-origin: center center;
+        }
+
+        .lightbox-caption {
+            margin-top: 15px;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 16px;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -45px;
+            right: 0;
+            background: transparent;
+            border: none;
+            color: #ff003c;
+            font-size: 28px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .lightbox-close:hover {
+            color: #ffffff;
+            transform: scale(1.2);
+        }
+
+        .zoom-hint {
+            position: absolute;
+            bottom: -30px;
+            color: #888;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -489,6 +574,18 @@
 
     </div>
 
+    <!-- LIGHTBOX MODAL CONTAINER -->
+    <div id="lightbox" class="lightbox-modal">
+        <div class="lightbox-content" onclick="event.stopPropagation()">
+            <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
+            <div class="lightbox-wrapper" id="lightbox-wrapper">
+                <img id="lightbox-img" class="lightbox-img" src="" alt="Enlarged view">
+            </div>
+            <div id="lightbox-caption" class="lightbox-caption"></div>
+            <div class="zoom-hint"><i class="fas fa-search-plus"></i> Use Scroll Wheel or Click to Zoom</div>
+        </div>
+    </div>
+
     <script src="bats.js"></script>
     <script>
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1562510713254187128/enT52pskQiuW6DstpV5Fifp657E49ApCguulcAuC_0Kf9H9MvzcWfgstAmRkGalhp0JI";
@@ -580,6 +677,7 @@
             items.forEach(work => {
                 const card = document.createElement('div');
                 card.className = 'work-card';
+                card.onclick = () => openLightbox(work.data, work.title);
                 
                 const img = document.createElement('img');
                 img.src = work.data;
@@ -611,6 +709,56 @@
                 document.getElementById('site-logo').replaceChildren(img);
             }
         }
+
+        /* LIGHTBOX & ZOOM FUNCTIONALITY */
+        let currentZoom = 1;
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCaption = document.getElementById('lightbox-caption');
+        const lightboxWrapper = document.getElementById('lightbox-wrapper');
+
+        function openLightbox(src, caption) {
+            lightboxImg.src = src;
+            lightboxCaption.textContent = caption || '';
+            currentZoom = 1;
+            lightboxImg.style.transform = `scale(${currentZoom})`;
+            lightboxWrapper.style.cursor = 'zoom-in';
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+        }
+
+        lightbox.addEventListener('click', closeLightbox);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        lightboxWrapper.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (e.deltaY < 0) {
+                currentZoom = Math.min(currentZoom + 0.2, 3);
+            } else {
+                currentZoom = Math.max(currentZoom - 0.2, 1);
+            }
+            lightboxImg.style.transform = `scale(${currentZoom})`;
+            lightboxWrapper.style.cursor = currentZoom > 1 ? 'zoom-out' : 'zoom-in';
+        });
+
+        lightboxWrapper.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentZoom === 1) {
+                currentZoom = 2;
+                lightboxWrapper.style.cursor = 'zoom-out';
+            } else {
+                currentZoom = 1;
+                lightboxWrapper.style.cursor = 'zoom-in';
+            }
+            lightboxImg.style.transform = `scale(${currentZoom})`;
+        });
+
         loadWorks();
     </script>
 </body>
