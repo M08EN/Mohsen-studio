@@ -75,6 +75,10 @@
                     <label>Password</label>
                     <input type="password" id="password" autocomplete="current-password" required>
                 </div>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>GitHub Personal Access Token (for direct upload)</label>
+                    <input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxx" required>
+                </div>
                 <button type="submit" class="add-btn"><i class="fas fa-sign-in-alt"></i> LOGIN</button>
                 <div class="msg" id="login-msg"></div>
             </form>
@@ -83,7 +87,7 @@
         <!-- DASHBOARD -->
         <div id="admin-view" class="hidden">
             <div class="card-box">
-                <h3><i class="fas fa-cloud-upload-alt"></i> UPLOAD NEW IMAGES</h3>
+                <h3><i class="fas fa-cloud-upload-alt"></i> UPLOAD NEW IMAGES TO GITHUB</h3>
                 <form id="upload-form">
                     <div class="form-group">
                         <label>Type</label>
@@ -98,10 +102,10 @@
                         <input type="text" id="title" maxlength="120" placeholder="e.g. Minecraft Crystal PvP">
                     </div>
                     <div class="form-group">
-                        <label>Image files (you can pick several)</label>
-                        <input type="file" id="files" accept="image/*" multiple required>
+                        <label>Image file</label>
+                        <input type="file" id="file" accept="image/*" required>
                     </div>
-                    <button type="submit" class="add-btn" id="upload-btn"><i class="fas fa-upload"></i> UPLOAD</button>
+                    <button type="submit" class="add-btn" id="upload-btn"><i class="fas fa-upload"></i> UPLOAD TO GITHUB</button>
                     <div class="msg" id="upload-msg"></div>
                 </form>
             </div>
@@ -119,7 +123,12 @@
     <script src="bats.js"></script>
     <script>
         const ADMIN_PASS = 'mohsenisdabestboy123';
+        const GH_OWNER = 'M08EN';
+        const GH_REPO = 'Mohsen-studio';
+        const GH_BRANCH = 'main';
+
         let password = sessionStorage.getItem('adminPassword') || '';
+        let ghToken = sessionStorage.getItem('ghToken') || '';
         let currentKind = 'thumbnail';
 
         const $ = id => document.getElementById(id);
@@ -138,9 +147,12 @@
         $('login-form').addEventListener('submit', e => {
             e.preventDefault();
             const pw = $('password').value;
+            const token = $('gh-token').value.trim();
             if (pw === ADMIN_PASS) {
                 password = pw;
+                ghToken = token;
                 sessionStorage.setItem('adminPassword', pw);
+                sessionStorage.setItem('ghToken', token);
                 setMsg('login-msg', '');
                 showAdmin();
             } else {
@@ -149,59 +161,55 @@
         });
 
         $('logout').addEventListener('click', () => {
-            sessionStorage.removeItem('adminPassword');
+            sessionStorage.clear();
             location.reload();
         });
 
-        function getStoredWorks() {
+        async function getManifest() {
             try {
-                return JSON.parse(localStorage.getItem('mohsen_works') || '[]');
+                const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/works.json?ref=${GH_BRANCH}`, {
+                    headers: { 'Authorization': `token ${ghToken}` }
+                });
+                if (!res.ok) return [];
+                const data = await res.json();
+                return JSON.parse(atob(data.content));
             } catch {
                 return [];
             }
         }
 
-        function saveStoredWorks(works) {
+        async function saveManifest(works) {
+            let sha = '';
             try {
-                localStorage.setItem('mohsen_works', JSON.stringify(works));
-                return true;
-            } catch (e) {
-                alert('Storage is full! Please delete some old images first.');
-                return false;
-            }
+                const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/works.json?ref=${GH_BRANCH}`, {
+                    headers: { 'Authorization': `token ${ghToken}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    sha = data.sha;
+                }
+            } catch {}
+
+            const content = btoa(JSON.stringify(works, null, 2));
+            await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/works.json`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${ghToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: 'Update works manifest',
+                    content: content,
+                    sha: sha,
+                    branch: GH_BRANCH
+                })
+            });
         }
 
-        // دالة لضغط الصورة وتصغير حجمها لكي تقبلها ذاكرة المتصفح
-        async function compressImage(file) {
+        function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.onload = event => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        const maxDim = 1200; // أقصى حد للأبعاد للحفاظ على الوضوح وتوفير المساحة
-
-                        if (width > height && width > maxDim) {
-                            height = Math.round((height * maxDim) / width);
-                            width = maxDim;
-                        } else if (height > maxDim) {
-                            width = Math.round((width * maxDim) / height);
-                            height = maxDim;
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // تحويل الصورة إلى صيغة تسوي مساحة صغيرة وبجودة عالية
-                        resolve(canvas.toDataURL('image/jpeg', 0.8));
-                    };
-                    img.onerror = reject;
-                    img.src = event.target.result;
-                };
+                reader.onload = () => resolve(reader.result.split(',')[1]);
                 reader.onerror = reject;
                 reader.readAsDataURL(file);
             });
@@ -209,53 +217,68 @@
 
         $('upload-form').addEventListener('submit', async e => {
             e.preventDefault();
-            const files = [...$('files').files];
+            const fileInput = $('file');
+            if (!fileInput.files.length) return;
+            const file = fileInput.files[0];
             const kind = $('kind').value;
             const title = $('title').value.trim();
-            if (!files.length) return;
 
             $('upload-btn').disabled = true;
+            setMsg('upload-msg', 'Uploading directly to GitHub...');
+
             try {
-                let works = getStoredWorks();
+                const base64Content = await fileToBase64(file);
+                const fileName = `img_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9_.-]/g, '_')}`;
+                const filePath = `uploads/${fileName}`;
+
+                const uploadRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${filePath}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${ghToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Upload ${fileName}`,
+                        content: base64Content,
+                        branch: GH_BRANCH
+                    })
+                });
+
+                if (!uploadRes.ok) throw new Error('Failed to upload image to GitHub repository');
+
+                const fileUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${filePath}`;
+
+                let works = await getManifest();
                 if (kind === 'site_logo') {
                     works = works.filter(w => w.kind !== 'site_logo');
                 }
-                
-                for (let i = 0; i < files.length; i++) {
-                    setMsg('upload-msg', `Compressing & Uploading ${i + 1} of ${files.length}...`);
-                    const compressedData = await compressImage(files[i]);
-                    works.unshift({
-                        id: 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                        kind: kind,
-                        title: title || (files.length > 1 ? `Work ${i+1}` : ''),
-                        data: compressedData
-                    });
-                }
-                
-                if (saveStoredWorks(works)) {
-                    setMsg('upload-msg', `✅ Uploaded successfully!`, true);
-                    $('upload-form').reset();
-                    $('kind').value = kind;
-                    selectTab(kind);
-                } else {
-                    setMsg('upload-msg', `❌ Storage limit reached.`);
-                }
+                works.unshift({
+                    id: fileName,
+                    kind: kind,
+                    title: title || 'Untitled',
+                    url: fileUrl
+                });
+
+                await saveManifest(works);
+
+                setMsg('upload-msg', '✅ Uploaded to GitHub successfully!', true);
+                $('upload-form').reset();
+                $('kind').value = kind;
+                loadWorks();
             } catch (err) {
-                setMsg('upload-msg', `❌ Upload failed`);
+                setMsg('upload-msg', `❌ Error: ${err.message}`);
             } finally {
                 $('upload-btn').disabled = false;
-                loadWorks();
             }
         });
 
-        function loadWorks() {
-            renderItems();
+        async function loadWorks() {
+            renderItems(await getManifest());
         }
 
-        function renderItems() {
+        async function renderItems(works) {
             const container = $('items');
             container.replaceChildren();
-            const works = getStoredWorks();
             const items = works.filter(w => w.kind === currentKind);
             
             if (!items.length) {
@@ -265,18 +288,19 @@
                 container.append(empty);
                 return;
             }
-            items.forEach((work, i) => {
+
+            items.forEach((work) => {
                 const item = document.createElement('div');
                 item.className = 'item' + (work.kind === 'thumbnail' ? '' : ' square');
 
                 const img = document.createElement('img');
-                img.src = work.data;
+                img.src = work.url;
                 img.loading = 'lazy';
 
                 const bar = document.createElement('div');
                 bar.className = 'item-bar';
                 const label = document.createElement('span');
-                label.textContent = work.title || (work.kind === 'site_logo' && i === 0 ? 'Current logo' : 'Untitled');
+                label.textContent = work.title;
                 const del = document.createElement('button');
                 del.className = 'del-btn';
                 del.title = 'Delete';
@@ -289,25 +313,51 @@
             });
         }
 
-        function deleteWork(id) {
-            if (!confirm('Delete this image from the site?')) return;
-            let works = getStoredWorks();
-            works = works.filter(w => w.id !== id);
-            saveStoredWorks(works);
-            loadWorks();
+        async function deleteWork(id) {
+            if (!confirm('Delete this image from GitHub?')) return;
+            setMsg('upload-msg', 'Deleting...');
+            try {
+                const fileRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/uploads/${id}?ref=${GH_BRANCH}`, {
+                    headers: { 'Authorization': `token ${ghToken}` }
+                });
+                if (fileRes.ok) {
+                    const fileData = await fileRes.json();
+                    await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/uploads/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `token ${ghToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: `Delete ${id}`,
+                            sha: fileData.sha,
+                            branch: GH_BRANCH
+                        })
+                    });
+                }
+
+                let works = await getManifest();
+                works = works.filter(w => w.id !== id);
+                await saveManifest(works);
+
+                setMsg('upload-msg', '✅ Deleted successfully!', true);
+                loadWorks();
+            } catch (err) {
+                alert('Could not delete.');
+            }
         }
 
         function selectTab(kind) {
             currentKind = kind;
             document.querySelectorAll('.tab[data-kind]').forEach(t => t.classList.toggle('active', t.dataset.kind === kind));
-            renderItems();
+            loadWorks();
         }
         document.querySelectorAll('.tab[data-kind]').forEach(t => t.addEventListener('click', () => selectTab(t.dataset.kind)));
 
-        if (password === ADMIN_PASS) {
+        if (password === ADMIN_PASS && ghToken) {
             showAdmin();
         } else if (password) {
-            sessionStorage.removeItem('adminPassword');
+            sessionStorage.clear();
         }
     </script>
 </body>
