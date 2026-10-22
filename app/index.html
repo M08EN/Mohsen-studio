@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOHSEN - Portfolio & Orders</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        body {
+            background-color: #08080a;
+            color: #ffffff;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        #bat-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0 10px 0;
+        }
+
+        .logo-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #ff003c;
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.6);
+            transition: transform 0.3s ease;
+        }
+
+        .logo-img:hover {
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .socials {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .socials a {
+            color: #ffffff;
+            font-size: 20px;
+            text-decoration: none;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .socials a:hover {
+            background: #ff003c;
+            box-shadow: 0 0 15px #ff003c;
+            transform: translateY(-3px);
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .nav-btn {
+            background: transparent;
+            color: #ffffff;
+            border: 2px solid #ff003c;
+            padding: 10px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: #ff003c;
+            box-shadow: 0 0 20px rgba(255, 0, 60, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .tagline {
+            text-align: center;
+            font-weight: 900;
+            font-size: 16px;
+            color: #dddddd;
+            margin-bottom: 35px;
+            letter-spacing: 0.5px;
+        }
+
+        .tagline span { color: #ff003c; }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        .section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .admin-controls { text-align: center; margin-bottom: 25px; }
+        .admin-controls a { text-decoration: none; display: inline-block; }
+        .add-btn {
+            background: linear-gradient(45deg, #ff003c, #990024);
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(255, 0, 60, 0.4);
+            transition: 0.3s;
+        }
+        .add-btn:hover { transform: scale(1.03); }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .work-card {
+            background: rgba(20, 20, 25, 0.8);
+            border: 2px solid rgba(255, 0, 60, 0.3);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: 0.3s ease;
+        }
+        .work-card:hover {
+            border-color: #ff003c;
+            transform: translateY(-5px);
+        }
+        .work-card img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #0d0d10; }
+        .work-card-info:empty { display: none; }
+
+        .logo-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        .logo-gallery .work-card img { aspect-ratio: 1 / 1; }
+
+        .empty-slot {
+            aspect-ratio: 16 / 9;
+            border: 2px dashed rgba(255, 0, 60, 0.35);
+            border-radius: 14px;
+            background: rgba(20, 20, 25, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .empty-slot i { font-size: 26px; color: rgba(255, 0, 60, 0.5); }
+        .logo-gallery .empty-slot { aspect-ratio: 1 / 1; }
+
+        .section-title { color: #ff003c; text-align: center; margin-bottom: 20px; }
+
+        .logo-placeholder {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            border-radius: 50%;
+            border: 3px solid #ff003c;
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 44px;
+            color: #ff003c;
+            background: #0d0d10;
+        }
+        .work-card-info { padding: 12px; text-align: center; font-weight: bold; background: rgba(10, 10, 12, 0.9); }
+
+        .card-box {
+            background: rgba(18, 18, 22, 0.9);
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card-box h3 { color: #ff003c; margin-bottom: 15px; font-size: 22px; text-align: center; }
+
+        /* About Stats Display */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 0, 60, 0.08);
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 26px;
+            font-weight: 900;
+            color: #ff003c;
+        }
+
+        .stat-card p {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #ddd; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: #0d0d10;
+            border: 1px solid rgba(255, 0, 60, 0.4);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #ff003c;
+            box-shadow: 0 0 10px rgba(255, 0, 60, 0.5);
+        }
+
+        .price-calculator {
+            background: rgba(255, 0, 60, 0.1);
+            border: 1px dashed #ff003c;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .price-calculator span { font-size: 24px; font-weight: 900; color: #ff003c; }
+
+        .warning-box {
+            background: rgba(255, 0, 60, 0.15);
+            border: 2px solid #ff003c;
+            border-radius: 10px;
+            padding: 18px;
+            margin-top: 25px;
+            text-align: left;
+        }
+        .warning-box h4 { color: #ff003c; font-size: 15px; margin-bottom: 10px; }
+        .warning-box ul { list-style: none; padding-left: 0; }
+        .warning-box li { font-size: 13px; color: #eee; margin-bottom: 8px; }
+
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .review-card {
+            background: rgba(18, 18, 22, 0.9);
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .review-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .review-header img { width: 45px; height: 45px; border-radius: 50%; border: 2px solid #ff003c; }
+        .review-stars { color: #ff003c; font-size: 12px; margin-top: 3px; }
+        .review-text { font-size: 13px; color: #ccc; line-height: 1.5; }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="bat-canvas"></canvas>
+
+    <div class="container">
+        <header>
+            <div id="site-logo"><img class="logo-img" src="/logo.png" alt="MOHSEN Logo"></div>
+            <div class="socials">
+                <a href="https://discord.gg/XzKq7khBkc" target="_blank" title="Discord Server"><i class="fab fa-discord"></i></a>
+                <a href="mailto:contact@mohsen.com" title="Email"><i class="fas fa-envelope"></i></a>
+                <a href="/admin" title="Admin"><i class="fas fa-lock"></i></a>
+            </div>
+        </header>
+
+        <nav>
+            <button class="nav-btn active" onclick="switchSection('work', this)"><i class="fas fa-paint-brush"></i> WORK</button>
+            <button class="nav-btn" onclick="switchSection('logos', this)"><i class="fas fa-shapes"></i> LOGOS</button>
+            <button class="nav-btn" onclick="switchSection('order', this)"><i class="fas fa-shopping-cart"></i> ORDER NOW</button>
+            <button class="nav-btn" onclick="switchSection('about', this)"><i class="fas fa-user"></i> ABOUT</button>
+            <button class="nav-btn" onclick="switchSection('reviews', this)"><i class="fas fa-star"></i> REVIEWS</button>
+        </nav>
+
+        <div class="tagline">
+            HI, IT'S ME <span>MOHSEN</span> A PROFESSIONAL THUMBNAIL DESIGNER MAKING YOUR THOUGHTS TO REALITY
+        </div>
+
+        <!-- WORK SECTION -->
+        <div id="work" class="section active">
+            <h3 class="section-title"><i class="fas fa-image"></i> THUMBNAILS</h3>
+            <div class="admin-controls">
+                <a href="/admin"><button class="add-btn"><i class="fas fa-plus-circle"></i> ADD / REMOVE THUMBNAILS</button></a>
+            </div>
+            <div class="gallery" id="thumbnail-gallery"></div>
+        </div>
+
+        <!-- LOGOS SECTION -->
+        <div id="logos" class="section">
+            <h3 class="section-title"><i class="fas fa-shapes"></i> LOGOS</h3>
+            <div class="admin-controls">
+                <a href="/admin"><button class="add-btn"><i class="fas fa-plus-circle"></i> ADD / REMOVE LOGOS</button></a>
+            </div>
+            <div class="logo-gallery" id="logo-gallery"></div>
+        </div>
+
+        <!-- ORDER SECTION -->
+        <div id="order" class="section">
+            <div class="card-box" style="max-width: 650px; margin: 0 auto;">
+                <h3><i class="fas fa-file-invoice"></i> PLACE YOUR ORDER</h3>
+                <form id="discord-order-form" onsubmit="sendDiscordOrder(event)">
+                    
+                    <div class="form-group">
+                        <label><i class="fab fa-discord"></i> Your Discord Username</label>
+                        <input type="text" id="discord-user" placeholder="e.g. user#1234 or .x2y." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-users"></i> Number of Characters / Skins</label>
+                        <select id="char-count" onchange="updatePrice()" required>
+                            <option value="1">1 Character ($10)</option>
+                            <option value="2+">Multiple Characters (2+) ($15)</option>
+                            <option value="logo">Logo ($15)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-gamepad"></i> Minecraft Username / Skin Name</label>
+                        <input type="text" id="mc-username" placeholder="e.g. Mohsen_PvP or Link to skin" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-comment-alt"></i> Thumbnail Details & Requirements</label>
+                        <textarea id="order-details" rows="4" placeholder="Describe what you want (Pose, Sword type, Lighting, Text on thumbnail, etc.)" required></textarea>
+                    </div>
+
+                    <div class="price-calculator">
+                        Total Price: <span id="total-price">$10</span>
+                    </div>
+
+                    <button type="submit" class="add-btn" style="width: 100%; font-size: 16px;">
+                        <i class="fas fa-paper-plane"></i> SUBMIT ORDER TO DISCORD
+                    </button>
+
+                    <div class="warning-box">
+                        <h4><i class="fas fa-exclamation-triangle"></i> IMPORTANT NOTICE BEFORE ORDERING</h4>
+                        <ul>
+                            <li>📌 <strong>ADD MY DISCORD:</strong> You MUST add <strong>.x2y.</strong> on Discord after submitting to receive your thumbnail and discuss details.</li>
+                            <li>💳 <strong>PAYMENT POLICY:</strong> Payment is required <strong>ONLY AFTER</strong> seeing the first 3D render preview (without extra edits).</li>
+                        </ul>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- ABOUT SECTION -->
+        <div id="about" class="section">
+            <div class="card-box" style="text-align: center; max-width: 750px; margin: 0 auto;">
+                <h3>ABOUT ME</h3>
+                <p style="font-size: 15px; line-height: 1.7; color: #eee;">
+                    Hello! I'm <strong>MOHSEN</strong>, a professional 3D Graphic & Minecraft Thumbnail Artist. 
+                    I have worked with <strong>numerous top YouTubers and famous content creators</strong> across the Minecraft community.
+                </p>
+                <p style="font-size: 14px; line-height: 1.7; color: #bbb; margin-top: 12px;">
+                    My custom 3D renders and eye-catching Photoshop thumbnails have generated <strong>over 72 Million+ clicks & views</strong> across YouTube, boosting CTR and video reach dramatically.
+                </p>
+
+                <!-- Stats Counters -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>72M+</h4>
+                        <p>Total Clicks / Impressions</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>100+</h4>
+                        <p>Famous Creators Worked With</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>100%</h4>
+                        <p>High CTR Boost</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REVIEWS SECTION -->
+        <div id="reviews" class="section">
+            <h3 style="color:#ff003c; text-align:center; margin-bottom:20px;"><i class="fas fa-star"></i> CLIENT FEEDBACK</h3>
+            <div class="reviews-grid">
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://i.pravatar.cc/100?img=12" alt="Avatar">
+                        <div>
+                            <strong>Alex_PvP</strong>
+                            <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        </div>
+                    </div>
+                    <div class="review-text">"Insane 3D lighting! The character armature posing in Blender looks so clean. Worth every dollar!"</div>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://i.pravatar.cc/100?img=33" alt="Avatar">
+                        <div>
+                            <strong>ShadowGamer</strong>
+                            <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        </div>
+                    </div>
+                    <div class="review-text">"Delivered in less than 24 hours. The first render preview was amazing so I paid instantly!"</div>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://i.pravatar.cc/100?img=60" alt="Avatar">
+                        <div>
+                            <strong>Krypton_MC</strong>
+                            <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        </div>
+                    </div>
+                    <div class="review-text">"Awesome communication on Discord (.x2y.). Best $15 I spent on a multi-character thumbnail."</div>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://i.pravatar.cc/100?img=68" alt="Avatar">
+                        <div>
+                            <strong>VortexPvP</strong>
+                            <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        </div>
+                    </div>
+                    <div class="review-text">"The Itachi-style vibe and dark effects in Photoshop are incredible. My CTR boosted by 12%!"</div>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://i.pravatar.cc/100?img=53" alt="Avatar">
+                        <div>
+                            <strong>ZeusCraft</strong>
+                            <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        </div>
+                    </div>
+                    <div class="review-text">"Super fair policy. Letting me see the initial 3D render preview before payment gave me full confidence."</div>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://i.pravatar.cc/100?img=11" alt="Avatar">
+                        <div>
+                            <strong>FrostByte</strong>
+                            <div class="review-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                        </div>
+                    </div>
+                    <div class="review-text">"Mohsen is the GOAT of Minecraft thumbnails. Will order again for sure!"</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <script src="bats.js"></script>
+    <script>
+        // Section Switcher
+        function switchSection(id, btn) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        // Price Update
+        function updatePrice() {
+            const count = document.getElementById('char-count').value;
+            const priceSpan = document.getElementById('total-price');
+            if (count === '1') priceSpan.textContent = '$10';
+            else priceSpan.textContent = '$15';
+        }
+
+        // Send Order (forwarded to Discord by the server)
+        function sendDiscordOrder(e) {
+            e.preventDefault();
+            const form = document.getElementById('discord-order-form');
+            const button = form.querySelector('button[type="submit"]');
+            button.disabled = true;
+
+            fetch('/api/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    discordUser: document.getElementById('discord-user').value,
+                    charCount: document.getElementById('char-count').value,
+                    mcUsername: document.getElementById('mc-username').value,
+                    details: document.getElementById('order-details').value
+                })
+            }).then(res => {
+                if (!res.ok) throw new Error('Order failed: ' + res.status);
+                alert("✅ Order Sent Successfully!\n\nIMPORTANT NEXT STEPS:\n1. Add MOHSEN on Discord: .x2y.\n2. Payment is required ONLY AFTER you review the first 3D render preview.");
+                form.reset();
+                updatePrice();
+            }).catch(err => {
+                alert("❌ Error sending order. Please add .x2y. directly on Discord!");
+                console.error(err);
+            }).finally(() => { button.disabled = false; });
+        }
+
+        // Gallery: thumbnails, logos and the header logo come from /api/works
+        const MIN_SLOTS = { thumbnail: 6, logo: 8 };
+
+        function imageUrl(id, width) {
+            return `/.netlify/images?url=/api/images/${id}&w=${width}&fm=webp`;
+        }
+
+        function makeImg(work, width) {
+            const img = document.createElement('img');
+            img.src = imageUrl(work.id, width);
+            img.alt = work.title || 'MOHSEN work';
+            img.loading = 'lazy';
+            img.onerror = () => { img.onerror = null; img.src = `/api/images/${work.id}`; };
+            return img;
+        }
+
+        function emptySlot() {
+            const slot = document.createElement('div');
+            slot.className = 'empty-slot';
+            slot.innerHTML = '<i class="fas fa-plus"></i>COMING SOON';
+            return slot;
+        }
+
+        function renderGallery(containerId, items, minSlots, width) {
+            const container = document.getElementById(containerId);
+            container.replaceChildren();
+            items.forEach(work => {
+                const card = document.createElement('div');
+                card.className = 'work-card';
+                const info = document.createElement('div');
+                info.className = 'work-card-info';
+                info.textContent = work.title;
+                card.append(makeImg(work, width), info);
+                container.append(card);
+            });
+            for (let i = items.length; i < minSlots; i++) container.append(emptySlot());
+        }
+
+        async function loadWorks() {
+            let works = [];
+            try {
+                const res = await fetch('/api/works');
+                if (res.ok) works = await res.json();
+            } catch (err) { console.error(err); }
+
+            renderGallery('thumbnail-gallery', works.filter(w => w.kind === 'thumbnail'), MIN_SLOTS.thumbnail, 800);
+            renderGallery('logo-gallery', works.filter(w => w.kind === 'logo'), MIN_SLOTS.logo, 400);
+
+            const siteLogo = works.find(w => w.kind === 'site_logo');
+            if (siteLogo) {
+                const img = makeImg(siteLogo, 240);
+                img.className = 'logo-img';
+                img.alt = 'MOHSEN Logo';
+                img.loading = 'eager';
+                document.getElementById('site-logo').replaceChildren(img);
+            }
+        }
+        loadWorks();
+    </script>
+</body>
+</html>
