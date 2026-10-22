@@ -46,13 +46,13 @@
             border-radius: 30px; font-weight: 700; font-size: 12px; cursor: pointer; text-transform: uppercase;
         }
         .tab.active { background: #ff003c; box-shadow: 0 0 20px rgba(255, 0, 60, 0.8); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .item { background: rgba(20, 20, 25, 0.8); border: 2px solid rgba(255, 0, 60, 0.3); border-radius: 12px; overflow: hidden; }
-        .item img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #0d0d10; }
+        .item img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #0d0d10; min-height: 180px; }
         .item.square img { aspect-ratio: 1 / 1; }
-        .item-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; font-size: 13px; font-weight: bold; }
+        .item-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; font-size: 13px; font-weight: bold; }
         .item-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .del-btn { background: #2a0b12; color: #ff003c; border: 1px solid #ff003c; border-radius: 6px; padding: 6px 10px; cursor: pointer; flex-shrink: 0; }
+        .del-btn { background: #2a0b12; color: #ff003c; border: 1px solid #ff003c; border-radius: 6px; padding: 6px 12px; cursor: pointer; flex-shrink: 0; }
         .del-btn:hover { background: #ff003c; color: #fff; }
         .empty { text-align: center; color: #777; padding: 30px; grid-column: 1 / -1; }
         .hidden { display: none; }
@@ -119,21 +119,14 @@
     <script src="bats.js"></script>
     <script>
         const ADMIN_PASS = 'mohsenisdabestboy123';
-        const MAX_BYTES = 5 * 1024 * 1024;
         let password = sessionStorage.getItem('adminPassword') || '';
-        let works = [];
         let currentKind = 'thumbnail';
 
         const $ = id => document.getElementById(id);
-        const authHeaders = () => ({ 'x-admin-password': password });
 
         function setMsg(id, text, ok) {
             $(id).textContent = text;
             $(id).classList.toggle('ok', !!ok);
-        }
-
-        async function login(pw) {
-            return pw === ADMIN_PASS;
         }
 
         function showAdmin() {
@@ -142,11 +135,10 @@
             loadWorks();
         }
 
-        $('login-form').addEventListener('submit', async e => {
+        $('login-form').addEventListener('submit', e => {
             e.preventDefault();
             const pw = $('password').value;
-            setMsg('login-msg', 'Checking...');
-            if (await login(pw)) {
+            if (pw === ADMIN_PASS) {
                 password = pw;
                 sessionStorage.setItem('adminPassword', pw);
                 setMsg('login-msg', '');
@@ -161,19 +153,25 @@
             location.reload();
         });
 
-        async function prepareFile(file) {
-            if (file.size <= MAX_BYTES) return file;
-            const bitmap = await createImageBitmap(file);
-            let scale = Math.min(1, 2560 / bitmap.width);
-            for (let quality = 0.9; ; quality -= 0.1) {
-                const canvas = document.createElement('canvas');
-                canvas.width = Math.round(bitmap.width * scale);
-                canvas.height = Math.round(bitmap.height * scale);
-                canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-                const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
-                if (blob.size <= MAX_BYTES || quality < 0.4) return blob;
-                if (quality < 0.6) scale *= 0.75;
+        function getStoredWorks() {
+            try {
+                return JSON.parse(localStorage.getItem('mohsen_works') || '[]');
+            } catch {
+                return [];
             }
+        }
+
+        function saveStoredWorks(works) {
+            localStorage.setItem('mohsen_works', JSON.stringify(works));
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
         }
 
         $('upload-form').addEventListener('submit', async e => {
@@ -184,45 +182,45 @@
             if (!files.length) return;
 
             $('upload-btn').disabled = true;
-            let done = 0;
             try {
-                for (const file of files) {
-                    setMsg('upload-msg', `Uploading ${done + 1} of ${files.length}...`);
-                    const body = await prepareFile(file);
-                    const params = new URLSearchParams({ kind, title });
-                    const res = await fetch('/api/works?' + params, {
-                        method: 'POST',
-                        headers: { ...authHeaders(), 'Content-Type': body.type || 'image/jpeg' },
-                        body
-                    });
-                    if (!res.ok) {
-                        const data = await res.json().catch(() => ({}));
-                        throw new Error(data.error || 'Upload failed');
-                    }
-                    done++;
+                let works = getStoredWorks();
+                if (kind === 'site_logo') {
+                    works = works.filter(w => w.kind !== 'site_logo');
                 }
-                setMsg('upload-msg', `✅ Uploaded ${done} image${done > 1 ? 's' : ''}. They're live on the site now.`, true);
+                
+                for (let i = 0; i < files.length; i++) {
+                    setMsg('upload-msg', `Uploading ${i + 1} of ${files.length}...`);
+                    const base64Data = await fileToBase64(files[i]);
+                    works.unshift({
+                        id: 'img_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                        kind: kind,
+                        title: title || (files.length > 1 ? `Work ${i+1}` : ''),
+                        data: base64Data
+                    });
+                }
+                saveStoredWorks(works);
+                setMsg('upload-msg', `✅ Uploaded successfully!`, true);
                 $('upload-form').reset();
                 $('kind').value = kind;
                 selectTab(kind);
             } catch (err) {
-                setMsg('upload-msg', `❌ ${err.message} (${done} uploaded)`);
+                setMsg('upload-msg', `❌ Upload failed`);
             } finally {
                 $('upload-btn').disabled = false;
                 loadWorks();
             }
         });
 
-        async function loadWorks() {
-            const res = await fetch('/api/works');
-            works = res.ok ? await res.json() : [];
+        function loadWorks() {
             renderItems();
         }
 
         function renderItems() {
             const container = $('items');
             container.replaceChildren();
+            const works = getStoredWorks();
             const items = works.filter(w => w.kind === currentKind);
+            
             if (!items.length) {
                 const empty = document.createElement('div');
                 empty.className = 'empty';
@@ -235,8 +233,7 @@
                 item.className = 'item' + (work.kind === 'thumbnail' ? '' : ' square');
 
                 const img = document.createElement('img');
-                img.src = `/.netlify/images?url=/api/images/${work.id}&w=500&fm=webp`;
-                img.onerror = () => { img.onerror = null; img.src = `/api/images/${work.id}`; };
+                img.src = work.data;
                 img.loading = 'lazy';
 
                 const bar = document.createElement('div');
@@ -247,7 +244,7 @@
                 del.className = 'del-btn';
                 del.title = 'Delete';
                 del.innerHTML = '<i class="fas fa-trash"></i>';
-                del.onclick = () => deleteWork(work);
+                del.onclick = () => deleteWork(work.id);
                 bar.append(label, del);
 
                 item.append(img, bar);
@@ -255,10 +252,11 @@
             });
         }
 
-        async function deleteWork(work) {
+        function deleteWork(id) {
             if (!confirm('Delete this image from the site?')) return;
-            const res = await fetch(`/api/works/${work.id}`, { method: 'DELETE', headers: authHeaders() });
-            if (!res.ok) alert('Could not delete. Try logging in again.');
+            let works = getStoredWorks();
+            works = works.filter(w => w.id !== id);
+            saveStoredWorks(works);
             loadWorks();
         }
 
@@ -269,8 +267,10 @@
         }
         document.querySelectorAll('.tab[data-kind]').forEach(t => t.addEventListener('click', () => selectTab(t.dataset.kind)));
 
-        if (password) {
-            login(password).then(ok => ok ? showAdmin() : sessionStorage.removeItem('adminPassword'));
+        if (password === ADMIN_PASS) {
+            showAdmin();
+        } else if (password) {
+            sessionStorage.removeItem('adminPassword');
         }
     </script>
 </body>
